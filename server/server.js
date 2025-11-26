@@ -11,7 +11,7 @@ import routes from './routes/index.routes.js'
 dotenv.config()
 
 const app = express();
-const port = process.env.port || 3000;
+const port = process.env.port || 3012;
 const allowedOrigins = ['https://control.minsegtuc.gov.ar/', 'http://127.0.0.1:5500'];
 const corsOptions = {
     origin: function (origin, callback) {
