@@ -13,7 +13,7 @@ export const createLapacho = async (req, res) => {
             lapachoId: nuevoLapacho.idLapacho,
             elementoId: elemento
         });
-        // await registrarLog('CREAR',`Lapacho ${idLapacho} creado`, req.user.idDetalle, req.user.name, req.user.ip, req.user.userAgent);
+        await registrarLog('CREAR',`Lapacho ${nuevoLapacho.idLapacho} creado`, req.user?.id);
         res.status(201).json({ message: 'se creo el nuevo registro' });
     } catch (error) {
         res.status(500).json({ message: 'Error al crear Lapacho', error: error.message })
@@ -33,7 +33,7 @@ export const updateLapacho = async (req, res) => {
         }
         await modelos.Lapacho.update({ periodo }, { where: { idLapacho } });
         await modelos.Detalle.update({ cantidad }, { where: { lapachoId: idLapacho } });
-        //await registrarLog('ACTUALIZAR',`Actualización de lapacho ${idLapacho}`, req.user.idDetalle, req.user.name, req.user.ip, req.user.userAgent);
+        await registrarLog('ACTUALIZAR',`Actualización de lapacho ${idLapacho}`, req.user?.id);
         res.status(200).json({ message: 'Lapacho actualizado correctamente' });
     } catch (error) {
         res.status(500).json({ message: 'Error al actualizar lapacho', error: error.message })
@@ -43,7 +43,7 @@ export const updateLapacho = async (req, res) => {
 export const obtenerLapacho = async (req, res) => {
     try {
         const lapacho = await modelos.Lapacho.findAll();
-        //await registrarLog('LEER',`Obtener detalle ${lapacho}`, req.user.idDetalle, req.user.name, req.user.ip, req.user.userAgent);
+        await registrarLog('LEER',`Obtener detalle ${lapacho}`, req.user?.id);
         res.status(200).json(lapacho);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener lapacho', error: error.message })

@@ -8,14 +8,15 @@ export default (sequelize, DataTypes) => {
         accion:{
             type: DataTypes.STRING(100)
         },
-        userName:{
-            type: DataTypes.STRING(100)
+        descripcion:{
+            type: DataTypes.STRING(255)
         },
-        userAgent: {
-            type: DataTypes.STRING(100)
+        fecha: {
+            type: DataTypes.DATE,
+            allowNull: false,
         },
-        ip:{
-            type: DataTypes.STRING(20)
+        dniId:{
+            type: DataTypes.INTEGER
         }
     }, { tableName: 'logs', timestamps: true, createdAt: 'fechaCreacion', updatedAt: 'fechaActualizacion' })
 

@@ -1,13 +1,12 @@
 import { createLog } from '../controllers/logs.controller.js';
 
-const registrarLog = async (idLog, accion, userName, userAgent, ip) => {
+const registrarLog = async (accion, descripcion, dniId) => {
     const req = {
         body: {
-            idLog: idLog,
             accion: accion,
-            userName: userName,
-            userAgent: userAgent,
-            ip: ip
+            descripcion: descripcion,
+            fecha: new Date(),
+            dniId: dniId
         }
     }
 

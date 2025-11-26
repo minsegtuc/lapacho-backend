@@ -28,7 +28,7 @@ export const createDetalle = async (req, res) => {
         const nuevoDetalle = await modelos.Detalle.create({
             cantidad, lapachoId, elementoId
         });
-        //await registrarLog('CREAR',`Detalle ${idDetalle} creado`, req.user.idDetalle, req.user.name, req.user.ip, req.user.userAgent);
+        await registrarLog('CREAR',`Detalle ${nuevoDetalle.idDetalle} creado`, req.user?.id);
         res.status(201).json(nuevoDetalle);
     } catch (error) {
         res.status(500).json({ message: 'Error al crear el detalle', error: error.message })
@@ -45,7 +45,7 @@ export const updateDetalle = async (req, res) => {
         }
 
         await modelos.Detalle.update({ cantidad, lapachoId, elementoId }, { where: { idDetalle } });
-        //await registrarLog('ACTUALIZAR',`Actualización de detalle ${idDetalle}`, req.user.idDetalle, req.user.name, req.user.ip, req.user.userAgent);
+        await registrarLog('ACTUALIZAR',`Actualización de detalle ${idDetalle}`, req.user?.id);
         res.status(200).json({ message: 'Detalle actualizado correctamente' });
     } catch (error) {
         res.status(500).json({ message: 'Error al actualizar el detalle', error: error.message })
@@ -61,7 +61,7 @@ export const obtenerDetalle = async (req, res) => {
             ]
         });
         //console.log("detalle: " , detalle)
-        //await registrarLog('LEER',`Obtener detalle ${detalle}`, req.user.idDetalle, req.user.name, req.user.ip, req.user.userAgent);
+        await registrarLog('LEER',`Obtener detalle ${detalle}`, req.user?.id);
         res.status(200).json({detalle});
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los detalles', error: error.message })
