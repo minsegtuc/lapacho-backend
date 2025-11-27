@@ -32,7 +32,7 @@ export const updateLapacho = async (req, res) => {
             return res.status(404).json({ message: 'Lapacho no encontrado' });
         }
         await modelos.Lapacho.update({ periodo }, { where: { idLapacho } });
-        await modelos.Detalle.update({ cantidad }, { where: { lapachoId: idLapacho } });
+        await modelos.Detalle.update({ cantidad, elementoId: elemento }, { where: { lapachoId: idLapacho } });
         await registrarLog('ACTUALIZAR',`Actualización de lapacho ${idLapacho}`, req.user?.id);
         res.status(200).json({ message: 'Lapacho actualizado correctamente' });
     } catch (error) {
