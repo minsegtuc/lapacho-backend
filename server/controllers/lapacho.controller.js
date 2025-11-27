@@ -1,3 +1,4 @@
+import { where } from 'sequelize';
 import { registrarLog } from '../helpers/logHelpers.js';
 import modelos from '../models/index.model.js'
 
@@ -72,7 +73,10 @@ export const buscarPeriodoExistente = async (req, res) => {
                 return res.status(201).json({ exist: false, message: 'se creo el nuevo registro' });
             }
             return res.status(200).json({ exists: true, message: 'Ya existe un lapacho para el periodo seleccionado' })
-        } 
+        } else {
+            await createLapacho(req, res);
+            return res.status(200).json({ exists: false, message: 'No existe un lapacho para el periodo seleccionado' })
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error al buscar el periodo', error: error.message })
@@ -81,7 +85,8 @@ export const buscarPeriodoExistente = async (req, res) => {
 
 export const obtenerLapachoPorId = async (req, res) => {
     try {
-        const { idLapacho } = req.body;
+        const { idLapacho, idDetalle } = req.body;
+        console.log("Recibi: " , idLapacho, idDetalle)
 
         if (!idLapacho) {
             return res.status(400).json({ message: 'Debe proporcionar el idLapacho' });
@@ -92,7 +97,10 @@ export const obtenerLapachoPorId = async (req, res) => {
                 {
                     model: modelos.Detalle,
                     as: 'detalles',
-                    include: [{ model: modelos.Elemento, as: 'elemento' }]
+                    include: [{ model: modelos.Elemento, as: 'elemento' }],
+                    where: {
+                        idDetalle
+                    }
                 }
             ]
         });

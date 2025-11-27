@@ -70,6 +70,8 @@ export const obtenerDetalle = async (req, res) => {
 
 export const obtenerDetalleAcumulado = async (req, res) => {
     const { fechaDesde, fechaHasta } = req.body;
+
+    console.log("Fechas: " , fechaDesde, fechaHasta)
     try {
         const fechaInicioNormalizada = normalizeFechaInicio(fechaDesde);
         const fechaFinNormalizada = normalizeFechaFin(fechaHasta);
@@ -111,6 +113,8 @@ export const obtenerDetalleAcumulado = async (req, res) => {
             replacements,
             type: QueryTypes.SELECT
         });
+
+        console.log("Detalle acumulado: " ,detalleAcumulado)
 
         res.status(200).json(detalleAcumulado);
     } catch (error) {
