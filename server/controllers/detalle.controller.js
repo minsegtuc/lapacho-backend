@@ -28,7 +28,7 @@ export const createDetalle = async (req, res) => {
         const nuevoDetalle = await modelos.Detalle.create({
             cantidad, lapachoId, elementoId
         });
-        await registrarLog('CREAR',`Detalle ${nuevoDetalle.idDetalle} creado`, req.user?.id);
+        await registrarLog('CREAR', `Detalle ${nuevoDetalle.idDetalle} creado`, req.user?.id);
         res.status(201).json(nuevoDetalle);
     } catch (error) {
         res.status(500).json({ message: 'Error al crear el detalle', error: error.message })
@@ -45,7 +45,7 @@ export const updateDetalle = async (req, res) => {
         }
 
         await modelos.Detalle.update({ cantidad, lapachoId, elementoId }, { where: { idDetalle } });
-        await registrarLog('ACTUALIZAR',`Actualización de detalle ${idDetalle}`, req.user?.id);
+        await registrarLog('ACTUALIZAR', `Actualización de detalle ${idDetalle}`, req.user?.id);
         res.status(200).json({ message: 'Detalle actualizado correctamente' });
     } catch (error) {
         res.status(500).json({ message: 'Error al actualizar el detalle', error: error.message })
@@ -55,14 +55,19 @@ export const updateDetalle = async (req, res) => {
 export const obtenerDetalle = async (req, res) => {
     try {
         const detalle = await modelos.Detalle.findAll({
-            include:[
+            include: [
                 { model: modelos.Lapacho, as: 'lapacho' },
                 { model: modelos.Elemento, as: 'elemento' }
+            ],
+            // Agregamos el ordenamiento aquí
+            order: [
+                // [ { ModeloRelacionado, as: 'alias' }, 'columna', 'DIRECCION' ]
+                [{ model: modelos.Lapacho, as: 'lapacho' }, 'periodo', 'DESC']
             ]
         });
-        //console.log("detalle: " , detalle)
-        await registrarLog('LEER',`Obtener detalle ${detalle}`, req.user?.id);
-        res.status(200).json({detalle});
+
+        await registrarLog('LEER', `Obtener detalle ${detalle?.length || 0} registros`, req.user?.id);
+        res.status(200).json({ detalle });
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los detalles', error: error.message })
     }
@@ -71,7 +76,7 @@ export const obtenerDetalle = async (req, res) => {
 export const obtenerDetalleAcumulado = async (req, res) => {
     const { fechaDesde, fechaHasta } = req.body;
 
-    console.log("Fechas: " , fechaDesde, fechaHasta)
+    console.log("Fechas: ", fechaDesde, fechaHasta)
     try {
         const fechaInicioNormalizada = normalizeFechaInicio(fechaDesde);
         const fechaFinNormalizada = normalizeFechaFin(fechaHasta);
@@ -114,7 +119,7 @@ export const obtenerDetalleAcumulado = async (req, res) => {
             type: QueryTypes.SELECT
         });
 
-        console.log("Detalle acumulado: " ,detalleAcumulado)
+        console.log("Detalle acumulado: ", detalleAcumulado)
 
         res.status(200).json(detalleAcumulado);
     } catch (error) {
