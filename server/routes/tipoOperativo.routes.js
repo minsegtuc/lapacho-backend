@@ -1,5 +1,5 @@
 import express from 'express'
-import { createTipoOperativo, getAllOperativos } from '../controllers/tipoOperativo.controller'
+import { createTipoOperativo, getAllOperativos } from '../controllers/tipoOperativo.controller.js'
 
 const router = express.Router();
 router.post('/', createTipoOperativo)

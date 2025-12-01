@@ -1,4 +1,4 @@
-import modelos from "../models/index.model";
+import modelos from "../models/index.model.js";
 
 export const createTipoOperativo = async (req, res) => {
     try {
