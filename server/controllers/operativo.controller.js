@@ -54,9 +54,9 @@ export const obtenerOperativo = async (req, res) => {
 export const buscarPeriodoExistente = async (req, res) => {
     console.log("entre a actualizar operativo")
     try {
-        const { periodo, elemento, cantidad } = req.body
+        const { tipoOperativo, periodo, elemento, cantidad } = req.body
         console.log("dato recibido: ", req.body)
-        const operativoExistente = await modelos.Operativo.findOne({ where: { periodo } })
+        const operativoExistente = await modelos.Operativo.findOne({ where: { periodo, tipoOperativo } })
 
         console.log("operativoExistente: ", operativoExistente)
         if (operativoExistente) {
@@ -101,7 +101,7 @@ export const obtenerOperativoPorId = async (req, res) => {
                     where: {
                         idDetalle
                     }
-                }
+                },
             ]
         });
 

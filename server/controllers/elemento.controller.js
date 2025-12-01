@@ -33,9 +33,11 @@ export const updateElemento = async (req, res)=>{
 }
 
 export const obtenerElemento = async (req, res)=>{
+    const {operativo} = req.body;
     try{
         const Elemento = await modelos.Elemento.findAll({
-            order: [['descripcion', 'ASC']]
+            order: [['descripcion', 'ASC']] , 
+            where: {tipoOperativoId: {operativo}}
         });
         await registrarLog('LEER',`Obtener Elemento ${Elemento}`, req.user?.id);
         res.status(200).json(Elemento);

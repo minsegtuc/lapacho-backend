@@ -56,7 +56,11 @@ export const obtenerDetalle = async (req, res) => {
     try {
         const detalle = await modelos.Detalle.findAll({
             include: [
-                { model: modelos.Operativo, as: 'operativo' },
+                { model: modelos.Operativo, as: 'operativo',
+                    include: [
+                        {model: modelos.tipoOperativo, as: 'tipoOperativo'}
+                    ]
+                 },
                 { model: modelos.Elemento, as: 'elemento' }
             ],
             // Agregamos el ordenamiento aquí
