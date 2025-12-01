@@ -24,9 +24,9 @@ const normalizeFechaFin = (valor) => {
 
 export const createDetalle = async (req, res) => {
     try {
-        const { cantidad, lapachoId, elementoId } = req.body;
+        const { cantidad, operativoId, elementoId } = req.body;
         const nuevoDetalle = await modelos.Detalle.create({
-            cantidad, lapachoId, elementoId
+            cantidad, operativoId, elementoId
         });
         await registrarLog('CREAR', `Detalle ${nuevoDetalle.idDetalle} creado`, req.user?.id);
         res.status(201).json(nuevoDetalle);
@@ -38,13 +38,13 @@ export const createDetalle = async (req, res) => {
 export const updateDetalle = async (req, res) => {
     try {
         const { idDetalle } = req.params;
-        const { cantidad, lapachoId, elementoId } = req.body;
+        const { cantidad, operativoId, elementoId } = req.body;
         const detalleExistente = await modelos.Detalle.findByPk(idDetalle);
         if (!detalleExistente) {
             return res.status(404).json({ message: 'Detalle no encontrado' });
         }
 
-        await modelos.Detalle.update({ cantidad, lapachoId, elementoId }, { where: { idDetalle } });
+        await modelos.Detalle.update({ cantidad, operativoId, elementoId }, { where: { idDetalle } });
         await registrarLog('ACTUALIZAR', `Actualización de detalle ${idDetalle}`, req.user?.id);
         res.status(200).json({ message: 'Detalle actualizado correctamente' });
     } catch (error) {
@@ -56,13 +56,13 @@ export const obtenerDetalle = async (req, res) => {
     try {
         const detalle = await modelos.Detalle.findAll({
             include: [
-                { model: modelos.Lapacho, as: 'lapacho' },
+                { model: modelos.Operativo, as: 'operativo' },
                 { model: modelos.Elemento, as: 'elemento' }
             ],
             // Agregamos el ordenamiento aquí
             order: [
                 // [ { ModeloRelacionado, as: 'alias' }, 'columna', 'DIRECCION' ]
-                [{ model: modelos.Lapacho, as: 'lapacho' }, 'periodo', 'DESC']
+                [{ model: modelos.Operativo, as: 'operativo' }, 'periodo', 'DESC']
             ]
         });
 
@@ -108,7 +108,7 @@ export const obtenerDetalleAcumulado = async (req, res) => {
                 COALESCE(SUM(d.cantidad), 0) AS cantidadTotal
             FROM detalle d
             INNER JOIN elemento e ON e."idElemento" = d."elementoId"
-            LEFT JOIN lapacho l ON l."idLapacho" = d."lapachoId"
+            LEFT JOIN operativo l ON l."idOperativo" = d."operativoId"
             ${whereClause}
             GROUP BY e."idElemento", e.descripcion, e."uMedida"
             ORDER BY e.descripcion ASC

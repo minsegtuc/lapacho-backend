@@ -13,11 +13,20 @@ export default (sequelize, DataTypes) => {
             type: DataTypes.STRING(20),
             allowNull: false
         },
+        tipoOperativoId: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: 'tipoOperativo',
+                key: 'idTipoOperativo'
+            }
+        }
 
     }, { tableName: 'elemento', timestamps: true, createdAt: 'fechaCreacion', updatedAt: 'fechaActualizacion' })
 
     Elemento.associate = (modelos) => {
-        Elemento.hasOne(modelos.Detalle, { foreignKey: 'elementoId', as: 'detalle' })
+        Elemento.hasOne(modelos.Detalle, { foreignKey: 'elementoId', as: 'detalle' }),
+        Elemento.belongsTo(modelos.tipoOperativo, {foreignKey: 'tipoOperativoId', as: 'tipoOperativo'})
     }
     return Elemento;
 }

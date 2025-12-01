@@ -31,12 +31,12 @@ app.use(cors(corsOptions))
 app.use(cookieParser())
 app.use(morgan('dev'))
 app.use(express.json())
-app.use('/apiLapacho', routes)
+app.use('/apiOperativo', routes)
 
 sequelize.authenticate()
     .then(() => {
         console.log('conexión exitosa a la base de datos')
-        return sequelize.sync({alter: true})
+        return sequelize.sync({force: true})
     })
     .then(()=>{
         const server = http.createServer(app)

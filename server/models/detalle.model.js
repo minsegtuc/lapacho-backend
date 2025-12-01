@@ -9,12 +9,12 @@ export default (sequelize, DataTypes) => {
             type: DataTypes.FLOAT,
             allowNull: false
         },
-        lapachoId: {
+        operativoId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: 'lapacho',
-                key: 'idLapacho'
+                model: 'operativo',
+                key: 'idOperativo'
             }
         },
         elementoId: {
@@ -29,7 +29,7 @@ export default (sequelize, DataTypes) => {
     }, {tableName: 'detalle', timestamps: true, createdAt: 'fechaCreacion', updatedAt: 'fechaActualizacion'})
     
     Detalle.associate = (modelos) => {
-        Detalle.belongsTo(modelos.Lapacho, {foreignKey: 'lapachoId', as: 'lapacho'}),
+        Detalle.belongsTo(modelos.Operativo, {foreignKey: 'operativoId', as: 'operativo'}),
         Detalle.belongsTo(modelos.Elemento, {foreignKey: 'elementoId', as: 'elemento'})
     }
     return Detalle;
