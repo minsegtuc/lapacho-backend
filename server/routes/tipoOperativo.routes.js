@@ -1,7 +1,8 @@
 import express from 'express'
-import { createTipoOperativo } from '../controllers/tipoOperativo.controller'
+import { createTipoOperativo, getAllOperativos } from '../controllers/tipoOperativo.controller'
 
 const router = express.Router();
 router.post('/', createTipoOperativo)
+router.get('/', getAllOperativos)
 
 export default router;

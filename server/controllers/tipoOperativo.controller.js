@@ -13,3 +13,12 @@ export const createTipoOperativo = async (req, res) => {
     }
 }
 
+export const getAllOperativos = async (req, res) => {
+    try {
+        const tipoOperativos = await modelos.tipoOperativo.findAll();
+        res.status(200).json(tipoOperativos)
+    } catch (error) {
+        res.status(500).json({message: "Error al traer los operativos", error: error.message})
+    }
+}
+
