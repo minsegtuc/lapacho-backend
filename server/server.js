@@ -36,7 +36,7 @@ app.use('/apiOperativo', routes)
 sequelize.authenticate()
     .then(() => {
         console.log('conexión exitosa a la base de datos')
-        return sequelize.sync({force: true})
+        return sequelize.sync({alter: true})
     })
     .then(()=>{
         const server = http.createServer(app)
