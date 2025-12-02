@@ -3,7 +3,7 @@ import { createElemento, updateElemento, obtenerElemento} from '../controllers/e
 
 const router = express.Router();
 router.post('/', createElemento);
-router.post('/', obtenerElemento);
+router.post('/obtener', obtenerElemento);
 router.put('/:idElemento', updateElemento);
 
 export default router;
