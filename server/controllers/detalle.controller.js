@@ -54,13 +54,26 @@ export const updateDetalle = async (req, res) => {
 
 export const obtenerDetalle = async (req, res) => {
     try {
+        // Puede venir como query param o como body (por compatibilidad)
+        const tipoOperativo = req.query.tipoOperativo ?? req.body?.tipoOperativo ?? null;
+
+        const where = {};
+
+        // Si viene un tipo de operativo seleccionado, filtramos por ese tipo
+        if (tipoOperativo !== null && tipoOperativo !== undefined && tipoOperativo !== '') {
+            where['$operativo.tipoOperativoId$'] = tipoOperativo;
+        }
+
         const detalle = await modelos.Detalle.findAll({
+            where,
             include: [
-                { model: modelos.Operativo, as: 'operativo',
+                {
+                    model: modelos.Operativo,
+                    as: 'operativo',
                     include: [
-                        {model: modelos.tipoOperativo, as: 'tipoOperativo'}
+                        { model: modelos.tipoOperativo, as: 'tipoOperativo' }
                     ]
-                 },
+                },
                 { model: modelos.Elemento, as: 'elemento' }
             ],
             // Agregamos el ordenamiento aquí
@@ -78,7 +91,7 @@ export const obtenerDetalle = async (req, res) => {
 }
 
 export const obtenerDetalleAcumulado = async (req, res) => {
-    const { fechaDesde, fechaHasta } = req.body;
+    const { fechaDesde, fechaHasta, tipoOperativo } = req.body;
 
     console.log("Fechas: ", fechaDesde, fechaHasta)
     try {
@@ -100,6 +113,12 @@ export const obtenerDetalleAcumulado = async (req, res) => {
         if (fechaFinNormalizada) {
             whereParts.push('l.periodo <= :fechaHasta');
             replacements.fechaHasta = fechaFinNormalizada;
+        }
+
+        // Si viene un tipo de operativo seleccionado, filtramos por ese tipo
+        if (tipoOperativo !== null && tipoOperativo !== undefined && tipoOperativo !== '') {
+            whereParts.push('l."tipoOperativoId" = :tipoOperativo');
+            replacements.tipoOperativo = tipoOperativo;
         }
 
         const whereClause = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
