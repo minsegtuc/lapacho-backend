@@ -92,8 +92,8 @@ export const updateOperativo = async (req, res) => {
                 });
             }
 
-            // Si se está cambiando periodo o tipoOperativo, verificar si ya existe un operativo con esos valores
-            // Si existe, mover el detalle a ese operativo en lugar de actualizar el actual
+            // Si se está cambiando periodo o tipoOperativo, SIEMPRE buscar un operativo destino
+            // Si existe, mover el detalle allí. Si no existe, se creará uno nuevo en la transacción
             if (periodo !== undefined || tipoOperativoValue !== undefined) {
                 operativoDestino = await modelos.Operativo.findOne({
                     where: {
@@ -122,9 +122,23 @@ export const updateOperativo = async (req, res) => {
 
         const transaccion = await sequelize.transaction();
         try {
-            if (operativoDestino) {
-                // Si existe un operativo con el nuevo periodo y tipoOperativo, mover el detalle allí
-                // Asegurar que solo se actualice el detalle específico usando where
+            // Verificar si el periodo o tipoOperativo realmente cambiaron
+            const periodoCambio = periodo !== undefined && operativoExistente.periodo !== nuevoPeriodo;
+            const tipoOperativoCambio = tipoOperativoValue !== undefined && operativoExistente.tipoOperativoId !== nuevoTipoOperativo;
+            const hayCambioPeriodoOTipo = periodoCambio || tipoOperativoCambio;
+
+            // Si se está cambiando periodo o tipoOperativo, SIEMPRE buscar o crear un operativo destino
+            // y mover el detalle allí, en lugar de actualizar el operativo original
+            if (hayCambioPeriodoOTipo) {
+                // Si no existe un operativo con el nuevo periodo y tipoOperativo, crear uno nuevo
+                if (!operativoDestino) {
+                    operativoDestino = await modelos.Operativo.create({
+                        periodo: nuevoPeriodo,
+                        tipoOperativoId: nuevoTipoOperativo
+                    }, { transaction: transaccion });
+                }
+
+                // Mover el detalle al operativo destino
                 await modelos.Detalle.update(
                     {
                         operativoId: operativoDestino.idOperativo,
@@ -147,20 +161,8 @@ export const updateOperativo = async (req, res) => {
                     await operativoExistente.destroy({ transaction: transaccion });
                 }
             } else {
-                // Actualizar el operativo y detalle normalmente
-                if (periodo !== undefined || tipoOperativoValue !== undefined) {
-                    // Asegurar que solo se actualice el operativo específico usando where
-                    await modelos.Operativo.update(
-                        { periodo: nuevoPeriodo, tipoOperativoId: nuevoTipoOperativo },
-                        { 
-                            where: { idOperativo: idOperativo },
-                            transaction: transaccion 
-                        }
-                    );
-                }
-
+                // Si NO se está cambiando periodo ni tipoOperativo, solo actualizar el detalle
                 if (detalleExistente) {
-                    // Asegurar que solo se actualice el detalle específico usando where
                     await modelos.Detalle.update(
                         {
                             cantidad: cantidad ?? detalleExistente.cantidad,
