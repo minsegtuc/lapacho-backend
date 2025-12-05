@@ -124,13 +124,17 @@ export const updateOperativo = async (req, res) => {
         try {
             if (operativoDestino) {
                 // Si existe un operativo con el nuevo periodo y tipoOperativo, mover el detalle allí
-                await detalleExistente.update(
+                // Asegurar que solo se actualice el detalle específico usando where
+                await modelos.Detalle.update(
                     {
                         operativoId: operativoDestino.idOperativo,
                         cantidad: cantidad ?? detalleExistente.cantidad,
                         elementoId: elemento ?? detalleExistente.elementoId
                     },
-                    { transaction: transaccion }
+                    { 
+                        where: { idDetalle: idDetalle },
+                        transaction: transaccion 
+                    }
                 );
 
                 // Verificar si el operativo original tiene más detalles, si no, eliminarlo
@@ -145,19 +149,27 @@ export const updateOperativo = async (req, res) => {
             } else {
                 // Actualizar el operativo y detalle normalmente
                 if (periodo !== undefined || tipoOperativoValue !== undefined) {
-                    await operativoExistente.update(
+                    // Asegurar que solo se actualice el operativo específico usando where
+                    await modelos.Operativo.update(
                         { periodo: nuevoPeriodo, tipoOperativoId: nuevoTipoOperativo },
-                        { transaction: transaccion }
+                        { 
+                            where: { idOperativo: idOperativo },
+                            transaction: transaccion 
+                        }
                     );
                 }
 
                 if (detalleExistente) {
-                    await detalleExistente.update(
+                    // Asegurar que solo se actualice el detalle específico usando where
+                    await modelos.Detalle.update(
                         {
                             cantidad: cantidad ?? detalleExistente.cantidad,
                             elementoId: elemento ?? detalleExistente.elementoId
                         },
-                        { transaction: transaccion }
+                        { 
+                            where: { idDetalle: idDetalle },
+                            transaction: transaccion 
+                        }
                     );
                 }
             }
