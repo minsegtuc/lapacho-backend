@@ -20,7 +20,9 @@ export const createPuesto = async (req, res) => {
 
 export const obtenerPuestos = async (req, res) =>{
     try {
-        const puestos = await modelos.Puesto.findAll();
+        const puestos = await modelos.Puesto.findAll({
+            order: [['nombre', 'ASC']]
+        });
         res.status(200).json(puestos)
     }
     catch (error) {

@@ -4,10 +4,12 @@ import modelos, { sequelize } from '../models/index.model.js'
 
 export const createOperativo = async (req, res) => {
     try {
-        const { tipoOperativo, periodo, elemento, cantidad } = req.body;
+        const { tipoOperativo, periodo, elemento, cantidad, puesto } = req.body;
+        console.log("Creando operativo: " , puesto)
         const nuevoOperativo = await modelos.Operativo.create({
             periodo,
-            tipoOperativoId: tipoOperativo
+            tipoOperativoId: tipoOperativo,
+            puestoId: puesto
         });
 
         await modelos.Detalle.create({
@@ -27,11 +29,12 @@ export const updateOperativo = async (req, res) => {
     try {
         const { idOperativo } = req.params;
         const { datosParaActualizar } = req.body;
+        console.log("Datos para actualizar: " , datosParaActualizar)
         if (!datosParaActualizar || Object.keys(datosParaActualizar).length === 0) {
             return res.status(400).json({ message: 'Debe enviar los datos a actualizar' });
         }
 
-        const { periodo, elemento, cantidad, idTipoOperativo, tipoOperativo, idDetalle } = datosParaActualizar;
+        const { periodo, elemento, cantidad, idTipoOperativo, tipoOperativo, idDetalle, idPuesto } = datosParaActualizar;
 
         const operativoExistente = await modelos.Operativo.findByPk(idOperativo);
         if (!operativoExistente) {
@@ -43,13 +46,14 @@ export const updateOperativo = async (req, res) => {
         
         const nuevoPeriodo = periodo ?? operativoExistente.periodo;
         const nuevoTipoOperativo = tipoOperativoValue ?? operativoExistente.tipoOperativoId;
+        const nuevoPuesto = idPuesto ?? operativoExistente.puestoId;
 
         // Obtener el detalle existente para validar duplicados correctamente
         let detalleExistente = null;
         let nuevoElemento = null;
 
-        // Si se está actualizando elemento, cantidad, periodo o tipoOperativo, necesitamos el detalle
-        if (elemento !== undefined || cantidad !== undefined || periodo !== undefined || tipoOperativoValue !== undefined) {
+        // Si se está actualizando elemento, cantidad, periodo, tipoOperativo o puesto, necesitamos el detalle
+        if (elemento !== undefined || cantidad !== undefined || periodo !== undefined || tipoOperativoValue !== undefined || idPuesto !== undefined) {
             if (!idDetalle) {
                 return res.status(400).json({ message: 'Debe indicar el detalle a actualizar' });
             }
@@ -69,11 +73,12 @@ export const updateOperativo = async (req, res) => {
         // Solo validar si se está cambiando periodo, tipoOperativo o elemento
         let operativoDestino = null;
         if ((periodo !== undefined || tipoOperativoValue !== undefined || elemento !== undefined) && detalleExistente) {
-            // Buscar si existe otro operativo con el nuevo periodo y tipoOperativo que tenga el mismo elemento
+            // Buscar si existe otro operativo con el nuevo periodo, tipoOperativo y puesto que tenga el mismo elemento
             const operativoConMismoPeriodoYTipoYElemento = await modelos.Operativo.findOne({
                 where: {
                     periodo: nuevoPeriodo,
                     tipoOperativoId: nuevoTipoOperativo,
+                    puestoId: nuevoPuesto,
                     idOperativo: { [Op.ne]: idOperativo }
                 },
                 include: [{
@@ -92,13 +97,14 @@ export const updateOperativo = async (req, res) => {
                 });
             }
 
-            // Si se está cambiando periodo o tipoOperativo, SIEMPRE buscar un operativo destino
+            // Si se está cambiando periodo, tipoOperativo o puesto, SIEMPRE buscar un operativo destino
             // Si existe, mover el detalle allí. Si no existe, se creará uno nuevo en la transacción
-            if (periodo !== undefined || tipoOperativoValue !== undefined) {
+            if (periodo !== undefined || tipoOperativoValue !== undefined || idPuesto !== undefined) {
                 operativoDestino = await modelos.Operativo.findOne({
                     where: {
                         periodo: nuevoPeriodo,
                         tipoOperativoId: nuevoTipoOperativo,
+                        puestoId: nuevoPuesto,
                         idOperativo: { [Op.ne]: idOperativo }
                     }
                 });
@@ -122,19 +128,21 @@ export const updateOperativo = async (req, res) => {
 
         const transaccion = await sequelize.transaction();
         try {
-            // Verificar si el periodo o tipoOperativo realmente cambiaron
+            // Verificar si el periodo, tipoOperativo o puesto realmente cambiaron
             const periodoCambio = periodo !== undefined && operativoExistente.periodo !== nuevoPeriodo;
             const tipoOperativoCambio = tipoOperativoValue !== undefined && operativoExistente.tipoOperativoId !== nuevoTipoOperativo;
-            const hayCambioPeriodoOTipo = periodoCambio || tipoOperativoCambio;
+            const puestoCambio = idPuesto !== undefined && operativoExistente.puestoId !== nuevoPuesto;
+            const hayCambioPeriodoTipoOPuesto = periodoCambio || tipoOperativoCambio || puestoCambio;
 
-            // Si se está cambiando periodo o tipoOperativo, SIEMPRE buscar o crear un operativo destino
+            // Si se está cambiando periodo, tipoOperativo o puesto, SIEMPRE buscar o crear un operativo destino
             // y mover el detalle allí, en lugar de actualizar el operativo original
-            if (hayCambioPeriodoOTipo) {
-                // Si no existe un operativo con el nuevo periodo y tipoOperativo, crear uno nuevo
+            if (hayCambioPeriodoTipoOPuesto) {
+                // Si no existe un operativo con el nuevo periodo, tipoOperativo y puesto, crear uno nuevo
                 if (!operativoDestino) {
                     operativoDestino = await modelos.Operativo.create({
                         periodo: nuevoPeriodo,
-                        tipoOperativoId: nuevoTipoOperativo
+                        tipoOperativoId: nuevoTipoOperativo,
+                        puestoId: nuevoPuesto
                     }, { transaction: transaccion });
                 }
 
@@ -200,15 +208,15 @@ export const obtenerOperativo = async (req, res) => {
 }
 
 export const buscarPeriodoExistente = async (req, res) => {
-    console.log("entre a actualizar operativo")
+    // console.log("entre a actualizar operativo")
     try {
-        const { tipoOperativo, periodo, elemento, cantidad } = req.body
+        const { tipoOperativo, periodo, elemento, cantidad, puesto } = req.body
         console.log("dato recibido: ", req.body)
-        const operativoExistente = await modelos.Operativo.findOne({ where: { periodo, tipoOperativoId: tipoOperativo } })
+        const operativoExistente = await modelos.Operativo.findOne({ where: { periodo, tipoOperativoId: tipoOperativo, puestoId: puesto } })
 
-        console.log("operativoExistente: ", operativoExistente)
+        // console.log("operativoExistente: ", operativoExistente)
         if (operativoExistente) {
-            console.log("estoy en el if")
+            // console.log("estoy en el if")
             const detalleExistente = await modelos.Detalle.findOne({ where: { operativoId: operativoExistente.idOperativo, elementoId: elemento } })
 
             console.log("Detalle existente: ", detalleExistente)

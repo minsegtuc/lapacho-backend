@@ -35,7 +35,7 @@ export const updateElemento = async (req, res) => {
 
 export const obtenerElemento = async (req, res) => {
     const { operativo } = req.body;
-    console.log("Operativo: ", operativo)
+    // console.log("Operativo: ", operativo)
     try {
         const Elemento = await modelos.Elemento.findAll({
             order: [['descripcion', 'ASC']],

@@ -56,12 +56,24 @@ export const obtenerDetalle = async (req, res) => {
     try {
         // Puede venir como query param o como body (por compatibilidad)
         const tipoOperativo = req.query.tipoOperativo ?? req.body?.tipoOperativo ?? null;
+        const puesto =
+            req.query.puesto ??
+            req.query.puestoId ??
+            req.body?.puesto ??
+            req.body?.puestoId ??
+            req.body?.idPuesto ??
+            null;
 
         const where = {};
 
         // Si viene un tipo de operativo seleccionado, filtramos por ese tipo
         if (tipoOperativo !== null && tipoOperativo !== undefined && tipoOperativo !== '') {
             where['$operativo.tipoOperativoId$'] = tipoOperativo;
+        }
+
+        // Si viene un puesto seleccionado, filtramos también por ese puesto
+        if (puesto !== null && puesto !== undefined && puesto !== '') {
+            where['$operativo.puestoId$'] = puesto;
         }
 
         const detalle = await modelos.Detalle.findAll({
@@ -71,7 +83,8 @@ export const obtenerDetalle = async (req, res) => {
                     model: modelos.Operativo,
                     as: 'operativo',
                     include: [
-                        { model: modelos.tipoOperativo, as: 'tipoOperativo' }
+                        { model: modelos.tipoOperativo, as: 'tipoOperativo' },
+                        { model: modelos.Puesto, as: 'puesto'}
                     ]
                 },
                 { model: modelos.Elemento, as: 'elemento' }
@@ -91,7 +104,7 @@ export const obtenerDetalle = async (req, res) => {
 }
 
 export const obtenerDetalleAcumulado = async (req, res) => {
-    const { fechaDesde, fechaHasta, tipoOperativo } = req.body;
+    const { fechaDesde, fechaHasta, tipoOperativo, puesto } = req.body;
 
     console.log("Fechas: ", fechaDesde, fechaHasta)
     try {
@@ -121,6 +134,12 @@ export const obtenerDetalleAcumulado = async (req, res) => {
             replacements.tipoOperativo = tipoOperativo;
         }
 
+        // Si viene un puesto seleccionado, filtramos por ese puesto
+        if (puesto !== null && puesto !== undefined && puesto !== '') {
+            whereParts.push('l."puestoId" = :puesto');
+            replacements.puesto = puesto;
+        }
+
         const whereClause = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
         const query = `
@@ -142,7 +161,7 @@ export const obtenerDetalleAcumulado = async (req, res) => {
             type: QueryTypes.SELECT
         });
 
-        console.log("Detalle acumulado: ", detalleAcumulado)
+        // console.log("Detalle acumulado: ", detalleAcumulado)
 
         res.status(200).json(detalleAcumulado);
     } catch (error) {
