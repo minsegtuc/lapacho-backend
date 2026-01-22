@@ -295,7 +295,7 @@ export const conteoPuestos = async (req, res) => {
 
         // Obtener todos los puestos primero
         const todosLosPuestos = await modelos.Puesto.findAll({
-            attributes: ['idPuesto', 'nombre', 'tipoPuesto'],
+            attributes: ['idPuesto', 'nombre', 'tipoPuesto', 'coordenadas'],
             raw: true
         });
 
@@ -305,7 +305,8 @@ export const conteoPuestos = async (req, res) => {
             attributes: [
                 'idPuesto', 
                 'nombre',
-                ['tipoPuesto', 'tipo'], 
+                ['tipoPuesto', 'tipo'],
+                'coordenadas',
                 [Sequelize.col('operativos.detalles.elemento.descripcion'), 'elementoNombre'],
                 [Sequelize.fn('COALESCE', Sequelize.fn('SUM', Sequelize.col('operativos.detalles.cantidad')), 0), 'totalCantidad']
             ],
@@ -338,6 +339,7 @@ export const conteoPuestos = async (req, res) => {
                 'idPuesto', 
                 'nombre',
                 'tipoPuesto',
+                'coordenadas',
                 Sequelize.col('operativos.detalles.elemento.idElemento'),
                 Sequelize.col('operativos.detalles.elemento.descripcion')
             ],
@@ -347,11 +349,32 @@ export const conteoPuestos = async (req, res) => {
         // Transformación a JSON anidado
         const reporteMap = new Map();
 
+        // Función para convertir coordenadas a array
+        const convertirCoordenadas = (coordenadas) => {
+            if (!coordenadas || coordenadas === null || coordenadas === undefined) {
+                return null;
+            }
+            // Si ya es un array, devolverlo
+            if (Array.isArray(coordenadas)) {
+                return coordenadas;
+            }
+            // Si es un string, dividirlo por coma y convertir a números
+            if (typeof coordenadas === 'string') {
+                const partes = coordenadas.split(',').map(coord => {
+                    const num = parseFloat(coord.trim());
+                    return isNaN(num) ? null : num;
+                });
+                return partes.every(coord => coord !== null) ? partes : null;
+            }
+            return null;
+        };
+
         // Inicializar todos los puestos con información vacía
         todosLosPuestos.forEach(puesto => {
             reporteMap.set(puesto.nombre, {
                 nombre: puesto.nombre,
                 tipo: puesto.tipoPuesto,
+                coordenadas: convertirCoordenadas(puesto.coordenadas),
                 informacion: {}
             });
         });
@@ -360,6 +383,10 @@ export const conteoPuestos = async (req, res) => {
         resultados.forEach(fila => {
             if (fila.nombre && reporteMap.has(fila.nombre)) {
                 const puesto = reporteMap.get(fila.nombre);
+                // Actualizar coordenadas si están presentes en los resultados
+                if (fila.coordenadas !== undefined && fila.coordenadas !== null) {
+                    puesto.coordenadas = convertirCoordenadas(fila.coordenadas);
+                }
                 // Solo agregar si hay elementoNombre y totalCantidad válidos
                 if (fila.elementoNombre && fila.totalCantidad !== null && fila.totalCantidad !== undefined) {
                     const cantidad = Number(fila.totalCantidad);
