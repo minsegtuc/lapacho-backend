@@ -1,11 +1,12 @@
 import { Op } from 'sequelize';
 import { registrarLog } from '../helpers/logHelpers.js';
 import modelos, { sequelize } from '../models/index.model.js'
+import Sequelize from 'sequelize';
 
 export const createOperativo = async (req, res) => {
     try {
         const { tipoOperativo, periodo, elemento, cantidad, puesto } = req.body;
-        console.log("Creando operativo: " , puesto)
+        console.log("Creando operativo: ", puesto)
         const nuevoOperativo = await modelos.Operativo.create({
             periodo,
             tipoOperativoId: tipoOperativo,
@@ -29,7 +30,7 @@ export const updateOperativo = async (req, res) => {
     try {
         const { idOperativo } = req.params;
         const { datosParaActualizar } = req.body;
-        console.log("Datos para actualizar: " , datosParaActualizar)
+        console.log("Datos para actualizar: ", datosParaActualizar)
         if (!datosParaActualizar || Object.keys(datosParaActualizar).length === 0) {
             return res.status(400).json({ message: 'Debe enviar los datos a actualizar' });
         }
@@ -43,7 +44,7 @@ export const updateOperativo = async (req, res) => {
 
         // Aceptar tanto tipoOperativo como idTipoOperativo (compatibilidad con createOperativo)
         const tipoOperativoValue = tipoOperativo ?? idTipoOperativo;
-        
+
         const nuevoPeriodo = periodo ?? operativoExistente.periodo;
         const nuevoTipoOperativo = tipoOperativoValue ?? operativoExistente.tipoOperativoId;
         const nuevoPuesto = idPuesto ?? operativoExistente.puestoId;
@@ -92,8 +93,8 @@ export const updateOperativo = async (req, res) => {
             });
 
             if (operativoConMismoPeriodoYTipoYElemento) {
-                return res.status(400).json({ 
-                    message: 'Ya existe un registro con el mismo elemento para el periodo y tipo operativo seleccionados' 
+                return res.status(400).json({
+                    message: 'Ya existe un registro con el mismo elemento para el periodo y tipo operativo seleccionados'
                 });
             }
 
@@ -153,9 +154,9 @@ export const updateOperativo = async (req, res) => {
                         cantidad: cantidad ?? detalleExistente.cantidad,
                         elementoId: elemento ?? detalleExistente.elementoId
                     },
-                    { 
+                    {
                         where: { idDetalle: idDetalle },
-                        transaction: transaccion 
+                        transaction: transaccion
                     }
                 );
 
@@ -176,9 +177,9 @@ export const updateOperativo = async (req, res) => {
                             cantidad: cantidad ?? detalleExistente.cantidad,
                             elementoId: elemento ?? detalleExistente.elementoId
                         },
-                        { 
+                        {
                             where: { idDetalle: idDetalle },
-                            transaction: transaccion 
+                            transaction: transaccion
                         }
                     );
                 }
@@ -269,5 +270,113 @@ export const obtenerOperativoPorId = async (req, res) => {
     }
     catch (error) {
         res.status(500).json({ message: 'Error al obtener operativo por ID', error: error.message })
+    }
+}
+
+export const conteoPuestos = async (req, res) => {
+    try {
+        const { fechaInicio, fechaFin } = req.query;
+        
+        // Construir el filtro de fecha si se proporcionan
+        const filtroFecha = {};
+        if (fechaInicio && fechaFin) {
+            filtroFecha.periodo = {
+                [Op.between]: [fechaInicio, fechaFin]
+            };
+        } else if (fechaInicio) {
+            filtroFecha.periodo = {
+                [Op.gte]: fechaInicio
+            };
+        } else if (fechaFin) {
+            filtroFecha.periodo = {
+                [Op.lte]: fechaFin
+            };
+        }
+
+        // Obtener todos los puestos primero
+        const todosLosPuestos = await modelos.Puesto.findAll({
+            attributes: ['idPuesto', 'nombre', 'tipoPuesto'],
+            raw: true
+        });
+
+        // Obtener los resultados con operativos filtrados por fecha
+        // Usamos required: false para incluir todos los puestos, incluso sin operativos
+        const resultados = await modelos.Puesto.findAll({
+            attributes: [
+                'idPuesto', 
+                'nombre',
+                ['tipoPuesto', 'tipo'], 
+                [Sequelize.col('operativos.detalles.elemento.descripcion'), 'elementoNombre'],
+                [Sequelize.fn('COALESCE', Sequelize.fn('SUM', Sequelize.col('operativos.detalles.cantidad')), 0), 'totalCantidad']
+            ],
+            include: [
+                {
+                    model: modelos.Operativo,
+                    as: 'operativos',
+                    attributes: [],
+                    where: Object.keys(filtroFecha).length > 0 ? filtroFecha : undefined,
+                    required: false,
+                    include: [
+                        {
+                            model: modelos.Detalle,
+                            as: 'detalles',
+                            attributes: [],
+                            required: false,
+                            include: [
+                                {
+                                    model: modelos.Elemento,
+                                    as: 'elemento',
+                                    attributes: [],
+                                    required: false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            group: [
+                'idPuesto', 
+                'nombre',
+                'tipoPuesto',
+                Sequelize.col('operativos.detalles.elemento.idElemento'),
+                Sequelize.col('operativos.detalles.elemento.descripcion')
+            ],
+            raw: true
+        });
+
+        // Transformación a JSON anidado
+        const reporteMap = new Map();
+
+        // Inicializar todos los puestos con información vacía
+        todosLosPuestos.forEach(puesto => {
+            reporteMap.set(puesto.nombre, {
+                nombre: puesto.nombre,
+                tipo: puesto.tipoPuesto,
+                informacion: {}
+            });
+        });
+
+        // Agregar información de los resultados
+        resultados.forEach(fila => {
+            if (fila.nombre && reporteMap.has(fila.nombre)) {
+                const puesto = reporteMap.get(fila.nombre);
+                // Solo agregar si hay elementoNombre y totalCantidad válidos
+                if (fila.elementoNombre && fila.totalCantidad !== null && fila.totalCantidad !== undefined) {
+                    const cantidad = Number(fila.totalCantidad);
+                    if (cantidad > 0) {
+                        puesto.informacion[fila.elementoNombre] = cantidad;
+                    }
+                }
+            }
+        });
+
+        // Convertir el Map a array
+        const reporte = Array.from(reporteMap.values());
+
+        res.status(200).json(reporte);
+
+    } catch (error) {
+        console.error("Error SQL:", error); 
+        res.status(500).json({ message: 'Error al obtener el conteo', error: error.message })
     }
 }
