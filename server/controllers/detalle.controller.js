@@ -67,7 +67,7 @@ export const obtenerDetalle = async (req, res) => {
         const where = {};
 
         // Excluir registros donde el puestoId en la base de datos sea null
-        where['$operativo.puestoId$'] = { [Op.ne]: null };
+        // where['$operativo.puestoId$'] = { [Op.ne]: null };
 
         // Si viene un tipo de operativo seleccionado, filtramos por ese tipo
         if (tipoOperativo !== null && tipoOperativo !== undefined && tipoOperativo !== '') {
@@ -122,7 +122,7 @@ export const obtenerDetalleAcumulado = async (req, res) => {
         const replacements = {};
 
         // Excluir registros donde el puestoId en la base de datos sea null
-        whereParts.push('l."puestoId" IS NOT NULL');
+        // whereParts.push('l."puestoId" IS NOT NULL');
 
         if (fechaInicioNormalizada) {
             whereParts.push('l.periodo >= :fechaDesde');
