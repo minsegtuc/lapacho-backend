@@ -1,4 +1,4 @@
-import { QueryTypes } from 'sequelize';
+import { QueryTypes, Op } from 'sequelize';
 import { registrarLog } from '../helpers/logHelpers.js';
 import modelos, { sequelize } from '../models/index.model.js'
 
@@ -66,6 +66,9 @@ export const obtenerDetalle = async (req, res) => {
 
         const where = {};
 
+        // Excluir registros donde el puestoId en la base de datos sea null
+        where['$operativo.puestoId$'] = { [Op.ne]: null };
+
         // Si viene un tipo de operativo seleccionado, filtramos por ese tipo
         if (tipoOperativo !== null && tipoOperativo !== undefined && tipoOperativo !== '') {
             where['$operativo.tipoOperativoId$'] = tipoOperativo;
@@ -118,6 +121,9 @@ export const obtenerDetalleAcumulado = async (req, res) => {
         const whereParts = [];
         const replacements = {};
 
+        // Excluir registros donde el puestoId en la base de datos sea null
+        whereParts.push('l."puestoId" IS NOT NULL');
+
         if (fechaInicioNormalizada) {
             whereParts.push('l.periodo >= :fechaDesde');
             replacements.fechaDesde = fechaInicioNormalizada;
@@ -134,7 +140,7 @@ export const obtenerDetalleAcumulado = async (req, res) => {
             replacements.tipoOperativo = tipoOperativo;
         }
 
-        // Si viene un puesto seleccionado, filtramos por ese puesto
+        // Si viene un puesto seleccionado, filtramos también por ese puesto
         if (puesto !== null && puesto !== undefined && puesto !== '') {
             whereParts.push('l."puestoId" = :puesto');
             replacements.puesto = puesto;
