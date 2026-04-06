@@ -67,7 +67,7 @@ export const obtenerDetalle = async (req, res) => {
         const where = {};
 
         // Excluir registros donde el puestoId en la base de datos sea null
-        where['$operativo.puestoId$'] = { [Op.ne]: null };
+        // where['$operativo.puestoId$'] = { [Op.ne]: null };
 
         // Si viene un tipo de operativo seleccionado, filtramos por ese tipo
         if (tipoOperativo !== null && tipoOperativo !== undefined && tipoOperativo !== '') {
