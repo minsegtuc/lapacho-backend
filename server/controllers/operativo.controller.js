@@ -45,11 +45,11 @@ export const updateOperativo = async (req, res) => {
         }
 
         // Aceptar tanto tipoOperativo como idTipoOperativo (compatibilidad con createOperativo)
-        const tipoOperativoValue = tipoOperativo !== undefined ? tipoOperativo : idTipoOperativo;
+        const tipoOperativoValue = tipoOperativo ?? idTipoOperativo;
 
-        const nuevoPeriodo = periodo !== undefined ? periodo : operativoExistente.periodo;
-        const nuevoTipoOperativo = tipoOperativoValue !== undefined ? tipoOperativoValue : operativoExistente.tipoOperativoId;
-        const nuevoPuesto = idPuesto !== undefined ? idPuesto : operativoExistente.puestoId;
+        const nuevoPeriodo = periodo ?? operativoExistente.periodo;
+        const nuevoTipoOperativo = tipoOperativoValue ?? operativoExistente.tipoOperativoId;
+        const nuevoPuesto = idPuesto ?? operativoExistente.puestoId;
 
         // Obtener el detalle existente para validar duplicados correctamente
         let detalleExistente = null;
