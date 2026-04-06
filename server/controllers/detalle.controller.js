@@ -99,6 +99,8 @@ export const obtenerDetalle = async (req, res) => {
             ]
         });
 
+        // console.log("Detalle: " , detalle)
+
         await registrarLog('LEER', `Obtener detalle ${detalle?.length || 0} registros`, req.user?.id);
         res.status(200).json({ detalle });
     } catch (error) {
@@ -122,7 +124,7 @@ export const obtenerDetalleAcumulado = async (req, res) => {
         const replacements = {};
 
         // Excluir registros donde el puestoId en la base de datos sea null
-        whereParts.push('l."puestoId" IS NOT NULL');
+        // whereParts.push('l."puestoId" IS NOT NULL');
 
         if (fechaInicioNormalizada) {
             whereParts.push('l.periodo >= :fechaDesde');
