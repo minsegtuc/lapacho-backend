@@ -5,7 +5,8 @@ import Sequelize from 'sequelize';
 
 export const createOperativo = async (req, res) => {
     try {
-        const { tipoOperativo, periodo, elemento, cantidad, puesto } = req.body;
+        let { tipoOperativo, periodo, elemento, cantidad, puesto } = req.body;
+        puesto = puesto === "" ? null : puesto;
         console.log("Creando operativo: ", puesto)
         const nuevoOperativo = await modelos.Operativo.create({
             periodo,
@@ -35,7 +36,8 @@ export const updateOperativo = async (req, res) => {
             return res.status(400).json({ message: 'Debe enviar los datos a actualizar' });
         }
 
-        const { periodo, elemento, cantidad, idTipoOperativo, tipoOperativo, idDetalle, idPuesto } = datosParaActualizar;
+        let { periodo, elemento, cantidad, idTipoOperativo, tipoOperativo, idDetalle, idPuesto } = datosParaActualizar;
+        idPuesto = idPuesto === "" ? null : idPuesto;
 
         const operativoExistente = await modelos.Operativo.findByPk(idOperativo);
         if (!operativoExistente) {
@@ -211,7 +213,8 @@ export const obtenerOperativo = async (req, res) => {
 export const buscarPeriodoExistente = async (req, res) => {
     // console.log("entre a actualizar operativo")
     try {
-        const { tipoOperativo, periodo, elemento, cantidad, puesto } = req.body
+        let { tipoOperativo, periodo, elemento, cantidad, puesto } = req.body
+        puesto = puesto === "" ? null : puesto;
         console.log("dato recibido: ", req.body)
         const operativoExistente = await modelos.Operativo.findOne({ where: { periodo, tipoOperativoId: tipoOperativo, puestoId: puesto } })
 
@@ -227,7 +230,7 @@ export const buscarPeriodoExistente = async (req, res) => {
                     operativoId: operativoExistente.idOperativo,
                     elementoId: elemento
                 });
-                return res.status(201).json({ exist: false, message: 'se creo el nuevo registro' });
+                return res.status(201).json({ exists: false, message: 'se creo el nuevo registro' });
             }
             return res.status(200).json({ exists: true, message: 'Ya existe un operativo para el periodo seleccionado' })
         } else {

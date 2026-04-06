@@ -15,14 +15,14 @@ export default (sequelize, DataTypes) => {
             references: {
                 model: 'tipoOperativo',
                 key: 'idTipoOperativo'
-            },
-            puestoId:{
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                references: {
-                    model: 'puesto',
-                    key: 'idPuesto'
-                }
+            }
+        },
+        puestoId:{
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: 'puesto',
+                key: 'idPuesto'
             }
         }
     }, { tableName: 'operativo', timestamps: true, createdAt: 'fechaCreacion', updatedAt: 'fechaActualizacion' })
