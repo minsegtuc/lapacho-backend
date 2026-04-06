@@ -35,7 +35,7 @@ export const updateElemento = async (req, res) => {
 
 export const obtenerElemento = async (req, res) => {
     const { operativo } = req.body;
-    // console.log("Operativo: ", operativo)
+    console.log("Operativo: ", operativo)
     try {
         const Elemento = await modelos.Elemento.findAll({
             order: [['descripcion', 'ASC']],
@@ -46,6 +46,7 @@ export const obtenerElemento = async (req, res) => {
             }
         });
         await registrarLog('LEER', `Obtener Elemento ${Elemento}`, req.user?.id);
+        console.log("Elemento: " , Elemento)
         res.status(200).json(Elemento);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los Elementos', error: error.message })

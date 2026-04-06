@@ -265,6 +265,8 @@ export const obtenerOperativoPorId = async (req, res) => {
             ]
         });
 
+        console.log("El operativo es: " , operativo)
+
         if (!operativo) {
             return res.status(404).json({ message: 'Operativo no encontrado' });
         }
