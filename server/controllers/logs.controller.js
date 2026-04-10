@@ -9,6 +9,7 @@ export const createLog = async (req, res) => {
             fecha: req.body.fecha,
             dniId: req.body.dniId,
         });
+        console.log("Log en create log: " , log)
         res.status(201).json(log);
     } catch (error) {
         res.status(500).json({ message: error.message });

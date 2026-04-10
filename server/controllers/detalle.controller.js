@@ -100,7 +100,7 @@ export const obtenerDetalle = async (req, res) => {
         });
 
         // console.log("Detalle: " , detalle)
-
+        console.log("Usuario: " , req.user)
         await registrarLog('LEER', `Obtener detalle ${detalle?.length || 0} registros`, req.user?.id);
         res.status(200).json({ detalle });
     } catch (error) {
