@@ -9,7 +9,7 @@ export default (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         }
-    }, {tableName: 'tipoOperativo', timestamps: true, createdAt: 'fechaCreacion', updateAt: 'fechaActualizacion'})
+    }, {tableName: 'tipoOperativo', timestamps: true, createdAt: 'fechaCreacion', updatedAt: 'fechaActualizacion'})
 
     tipoOperativo.associate = (modelos) => {
         tipoOperativo.hasMany(modelos.Operativo, {foreignKey: 'tipoOperativoId', as: 'operativos'})
