@@ -19,7 +19,7 @@ export default (sequelize, DataTypes) => {
             type: DataTypes.ENUM('FRONTERIZO', 'NO OFICIAL'),
             allowNull: false
         }
-    }, {tableName: 'puesto', timestamps: true, createdAt: 'fechaCreacion', updatedAt: 'fechaActualizacion'})
+    }, {tableName: 'puesto', timestamps: true, createdAt: 'fechaCreacion', updateAt: 'fechaActualizacion'})
 
     Puesto.associate = (modelos) => {
         Puesto.hasMany(modelos.Operativo, {foreignKey: 'puestoId', as: 'operativos'})
